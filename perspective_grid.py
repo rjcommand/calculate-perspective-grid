@@ -3,22 +3,21 @@ import numpy as np
 
 
 # Load image
-def load_image(pathToImage):
-    img = cv2.imread(pathToImage)
+def load_image(path_to_image):
+    img = cv2.imread(path_to_image)
     return img
 
 
 # Remove black side bars from image
 def remove_borders(img):
-
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _,thresh = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
 
-    contours,hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnt = contours[0]
-    x,y,w,h = cv2.boundingRect(cnt)
+    x, y, w, h = cv2.boundingRect(cnt)
 
-    crop = img[y:y+h, x:x+w]
+    crop = img[y:y + h, x:x + w]
 
     cv2.imwrite('test_image_cropped.png', crop)
 
@@ -36,29 +35,50 @@ def line_intersection(line1, line2):
 
     div = det(xdiff, ydiff)
     if div == 0:
-       raise Exception('lines do not intersect')
+        raise Exception('lines do not intersect')
 
     d = (det(*line1), det(*line2))
     x = det(d, xdiff) / div
     y = det(d, ydiff) / div
     return x, y
 
-print line_intersection((A, B), (C, D))
 
 # Draw the perspective grid
 def draw_grid(img, color=(0, 255, 0)):
     # Add intersecting lines to find the focal point
-    cv2.line(img, (0, 0),
-             (int(img.shape[1]), int(img.shape[0])),
+    # Line sf
+    cv2.line(img,
+             pt1=(0, 0),
+             pt2=(int(img.shape[1]), int(img.shape[0])),
+             color=color)
+    # Line et
+    cv2.line(img,
+             pt1=(0, int(img.shape[0])),
+             pt2=(int(img.shape[1]), 0),
              color=color)
 
-    cv2.line(img, (0, int(img.shape[0])),
-             (int(img.shape[1]), 0),
-             color=color)
-
-    focal_point = line_intersection(line1=((0, 0), (int(img.shape[1]), int(img.shape[0]))),
+    # Find the principal point (where the two diagonals intersect)
+    principal_point = line_intersection(line1=((0, 0), (int(img.shape[1]), int(img.shape[0]))),
                                     line2=((0, int(img.shape[0])), (int(img.shape[1]), 0)))
-    cv2.circle(img, focal_point, radius=0, color=(0, 0, 255), thickness=1)
+    # Draw the focal point
+    cv2.circle(img, center=(int(principal_point[0]), int(principal_point[1])),
+               radius=4, color=(0, 0, 255), thickness=5)
+
+    # Add horizontal and vertical guides through the focal point
+    # Line gh
+    # Point 'g' and 'h' are the left and right edges of the image, respectively
+    cv2.line(img,
+             pt1=(0, int(principal_point[1])),
+             pt2=(int(img.shape[1]), int(principal_point[1])),
+             color=color)
+    # Line bu
+    # Point 'b' and 'u' are the bottom and top edges of the image, respectively
+    cv2.line(img,
+             pt1=(int(principal_point[0]), 0),
+             pt2=(int(principal_point[0]), int(img.shape[0])),
+             color=color, thickness=2)
+    # Distances between reciprocal edges and p are equal (gp = ph; bp = pu)
+
 
     cv2.imshow('grid', img)
     cv2.waitKey(0)
