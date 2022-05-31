@@ -84,7 +84,7 @@ ba = bp * (1 + (math.tan(theta - math.atan(ON / (BA + ON * (1 / math.tan(theta +
 var = (10, 20, 30, 40, 50)
 
 
-def calc_h_line(img, theta=22.2, alpha=47.4, camera_height=44.11, grid_interval=100):
+def calc_h_line(img, theta=22.2, alpha=47.4, camera_height=44.11, grid_interval=20):
     # Convert degree angle to radians
     theta = theta * (math.pi / 180)  # Angle of incidence with the seafloor (input as degrees)
     alpha = alpha * (math.pi / 180)  # Vertical acceptance angle (input as degrees)
@@ -97,9 +97,16 @@ def calc_h_line(img, theta=22.2, alpha=47.4, camera_height=44.11, grid_interval=
     ba = bp * (1 + (math.tan(theta - math.atan(ON / (BA + ON * (math.cos(theta + alpha / 2) / math.sin(theta + alpha / 2)))))) /
                math.tan(alpha / 2))
 
+    # The distance
+    (ba - bp) / bp
+    principal_point = line_intersection(line1=((0, 0), (int(img.shape[1]), int(img.shape[0]))),
+                                        line2=((0, int(img.shape[0])), (int(img.shape[1]), 0)))
+
+    hline_dist = principal_point[1] * (ba / bp)
     # Return the points with respect to the image frame
-    # return ba
-    return [(0, int(img.shape[0] - ba)), (int(img.shape[1]), int(img.shape[0] - ba))]
+    #return ba
+    hline_points = [(0, int(img.shape[0] - hline_dist)), (int(img.shape[1]), int(img.shape[0]- hline_dist))]
+    return hline_points
 
 
 # Calculate vertical lines (horizontal scale)
@@ -149,10 +156,12 @@ def draw_grid(img, color=(0, 255, 0)):
              color=color, thickness=2)
     # Distances between reciprocal edges and p are equal (gp = ph; bp = pu)
     # Horizontal lines
+    intervals = np.arange(10, 150, 10, dtype=object).tolist()
     hlines = np.array([calc_h_line(img, theta=22.2, alpha=47.4, camera_height=44.11, grid_interval=x)
-                       for x in (600, 800)])
+                       for x in intervals])
+
     cv2.polylines(img, hlines, isClosed=True, color=(255, 255, 255), thickness=1)
 
     cv2.imshow('grid', img)
     cv2.waitKey(0)
-    return img
+    return img, print(hlines)
