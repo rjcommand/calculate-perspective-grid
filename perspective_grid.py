@@ -234,14 +234,20 @@ def draw_grid(img, color=(255, 255, 255), grid_interval=10):
 
 
 # Draw the perspective grid ontop of the image
-def overlay_grid(img, guide_color=(0, 255, 0), grid_color=(255, 255, 255), grid_interval=10, show_guides=True):
-    if show_guides:
+def overlay_grid(img, guide_color=(0, 255, 0), grid_color=(255, 255, 255), grid_interval=10, show_guides=True, show_grid=True):
+    if show_guides & show_grid:
         draw_grid(img=img, color=grid_color, grid_interval=grid_interval)
         draw_guides(img=img, guide_color=guide_color)
-    else:
+    elif show_grid:
         draw_grid(img=img, color=grid_color, grid_interval=grid_interval)
+    elif show_guides:
+        draw_guides(img=img, guide_color=guide_color)
 
     # Show the image
     cv2.imshow('grid', img)
     cv2.waitKey(0)
     return img
+
+
+def save_image(filepath, img):
+    cv2.imwrite(filepath, img)
