@@ -10,5 +10,5 @@ import perspective_grid
 if __name__ == '__main__':
     img = perspective_grid.load_image('test_image.jpg')
     cropped = perspective_grid.remove_borders(img)
-    perspective_grid.overlay_grid(img=cropped, grid_interval=10, show_guides=False)
-
+    img_with_grid = perspective_grid.overlay_grid(img=cropped, grid_interval=10, show_guides=True, show_grid=False)
+    perspective_grid.save_image('test_image_with_guides.png', img_with_grid)
