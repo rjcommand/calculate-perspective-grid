@@ -84,15 +84,17 @@ bp = (ON * math.tan(90 - (alpha / 2) - theta)) - (ON * math.tan(90 - theta))
 ba = bp * (1 + (math.tan(theta - math.atan(ON / (BA + ON * (1 / math.tan(theta + alpha / 2)))))) / math.tan(alpha / 2))
 
 
-def calc_h_line(img, theta=22.2, alpha=47.4, camera_height=44.11, grid_interval=20):
+def calc_h_line(img, theta_deg=22.2, alpha_deg=47.4, camera_height=44.11, grid_interval=20):
     # Convert degree angle to radians
-    theta = theta * (math.pi / 180)  # Angle of incidence with the seafloor (input as degrees)
-    alpha = alpha * (math.pi / 180)  # Vertical acceptance angle (input as degrees)
+    theta = theta_deg * (math.pi / 180)  # Angle of incidence with the seafloor (input as degrees)
+    alpha = alpha_deg * (math.pi / 180)  # Vertical acceptance angle (input as degrees)
+    delta = (90 - theta_deg - (alpha_deg / 2))
+    delta_rad = delta * math.pi/180
     ON = camera_height  # This is the height of the camera (cm)
     BA = grid_interval  # This is the grid interval we want
     # Distance from the base line to the principal point
-    bp = ((ON * math.tan((90 * math.pi/180) - theta)) - (ON * math.tan((90 * math.pi/180) - (alpha / 2) - theta)))
-
+    #bp = ((ON * math.tan((90 * math.pi/180) - theta)) - (ON * math.tan((90 * math.pi/180) - (alpha / 2) - theta)))
+    bp = ((ON * math.tan(delta_rad + (alpha / 2))) - (ON * math.tan(delta_rad)))
     # Distance to the first horizontal line in the image, representing a distance of 20cm from baseline on the seafloor
     ba = bp * (1 + (math.tan(theta - math.atan(ON / (BA + ON * (math.cos(theta + alpha / 2) / math.sin(theta + alpha / 2)))))) /
                math.tan(alpha / 2))
