@@ -1,7 +1,9 @@
 import math
 import cv2
 import numpy as np
-
+from scipy.interpolate import splprep, splev  # For contour smoothing function
+import random as rng
+rng.seed(12345)
 
 # - - - - - - - - - - - - - - - - - #
 # Image loading and pre-processing  #
@@ -248,6 +250,71 @@ def overlay_grid(img, guide_color=(0, 255, 0), grid_color=(255, 255, 255), grid_
     cv2.waitKey(0)
     return img
 
+
+# Function to smooth contours
+# From: https://agniva.me/scipy/2016/10/25/contour-smoothing.html
+def smooth_contours(cnts, original_img):
+    smoothened = []
+    for contour in cnts:
+        x, y = contour.T
+        # Convert from numpy arrays to normal arrays
+        x = x.tolist()[0]
+        y = y.tolist()[0]
+        # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.splprep.html
+        tck, u = splprep([x, y], u=None, s=1.0, per=1)
+        # https://docs.scipy.org/doc/numpy-1.10.1/reference/generated/numpy.linspace.html
+        u_new = np.linspace(u.min(), u.max(), 25)
+        # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.interpolate.splev.html
+        x_new, y_new = splev(u_new, tck, der=0)
+        # Convert it back to numpy format for opencv to be able to display it
+        res_array = [[[int(i[0]), int(i[1])]] for i in zip(x_new, y_new)]
+        smoothened.append(np.asarray(res_array, dtype=np.int32))
+
+    # Overlay the smoothed contours on the original image
+    cv2.drawContours(original_img, smoothened, -1, (255, 255, 255), 2)
+
+    return original_img
+
+
+def draw_light_curve(img, th=100, adaptive=False):
+    grey = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+    # Global thresholding
+    _, thresh = cv2.threshold(grey, th, 255, cv2.THRESH_BINARY)
+    # Otsu's thresholding
+    _, thresh_otsu = cv2.threshold(grey, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    ad_thresh = cv2.adaptiveThreshold(grey, th, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 2)
+    # Show only the masked regions in the image
+    masked = cv2.bitwise_and(img, img, mask=thresh)
+    masked_ad = cv2.bitwise_and(img, img, mask=ad_thresh)
+
+    kernel = np.ones((5, 5), np.uint8)
+    thresh_erode = cv2.erode(thresh, None, iterations=6)
+    thresh_dilate = cv2.dilate(thresh_erode, kernel, iterations=7)
+
+
+    # Find contours
+    contours, hierarchy = cv2.findContours(thresh_dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Draw contours
+    #cv2.drawContours(img, contours, -1, (0, 255, 0), 1)
+    img_cnts = smooth_contours(contours, original_img=img)
+
+    for cnt in contours:
+        leftmost = tuple(cnt[cnt[:, :, 0].argmin()][0])
+        rightmost = tuple(cnt[cnt[:, :, 0].argmax()][0])
+        topmost = tuple(cnt[cnt[:, :, 1].argmin()][0])
+
+    if rightmost[1] != leftmost[1]:
+        rightmost_fixed = tuple((rightmost[0], leftmost[1]))
+        rightmost = tuple(rightmost_fixed)
+
+    cv2.circle(img, topmost, radius=2, thickness=5, color=(0, 0, 255))
+    cv2.circle(img, leftmost, radius=2, thickness=5, color=(0, 0, 255))
+    cv2.circle(img, rightmost, radius=2, thickness=5, color=(0, 0, 255))
+    cv2.line(img, pt1=topmost, pt2=leftmost, color=(0, 255, 0))
+    cv2.line(img, pt1=topmost, pt2=rightmost, color=(0, 255, 0))
+
+    return thresh, print(leftmost, topmost, rightmost[0])
 
 def save_image(filepath, img):
     cv2.imwrite(filepath, img)
