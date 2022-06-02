@@ -121,7 +121,7 @@ def calc_v_line(img, ON=44.11, theta=22.2, alpha=47.4, beta=60.4, grid_side='lef
     bp = ((ON * math.tan((90 * math.pi/180) - theta)) - (ON * math.tan((90 * math.pi/180) - (alpha / 2) - theta)))
 
     # Distance from camera to base line, orthogonal to base line
-    OB = ON / (math.sin(theta + (alpha / 2)))
+    OB = ON * math.tan(delta)# / (math.sin(theta + (alpha / 2)))
 
     # Width of bottom of field of view
     EF = 2 * OB * math.tan(beta / 2)
@@ -129,7 +129,7 @@ def calc_v_line(img, ON=44.11, theta=22.2, alpha=47.4, beta=60.4, grid_side='lef
     # Scaling factor for hb (horizontal scale at the base line
     Shb = (ef * math.sin(theta + alpha / 2)) / (2 * ON * math.tan(beta / 2))
 
-    OP = ON / math.sin(theta)
+    OP = ON * ON * math.tan(delta + (alpha / 2))#/ math.sin(theta)
 
     GH = 2 * OP * math.tan(beta / 2)
     # Scaling factor for hp (horizontal scale at the principal point)
@@ -164,6 +164,42 @@ def calc_v_line(img, ON=44.11, theta=22.2, alpha=47.4, beta=60.4, grid_side='lef
     elif grid_side == 'right':
         return vlines_right
 
+
+def calc_area(theta=22.2, alpha=47.4, beta=60.4, camera_height=44.11):
+    # Convert degree angle to radians
+    theta_rad = theta * (math.pi / 180)  # Angle of incidence with the seafloor (input as degrees)
+    alpha_rad = alpha * (math.pi / 180)  # Vertical acceptance angle (input as degrees)
+    beta_rad = beta * (math.pi / 180)  # Horizontal acceptance angle (input as degrees)
+
+    # Calculate delta
+    delta = 90 - theta - (alpha / 2)
+    delta_rad = delta * math.pi/180
+
+    ON = camera_height  # This is the height of the camera (cm)
+    # Distance from camera to base line, orthogonal to base line
+    # OB = ON / (math.sin(theta + (alpha / 2)))
+    # Distance from the base line to the principal point
+    bp = ((ON * math.tan(delta_rad + alpha_rad/2)) - (ON * math.tan(delta_rad)))
+    # Distance from the base line to the top of the fov
+    ba = 80
+
+    na = ba + (ON * math.tan(delta_rad))
+
+    # Calculate
+    th2 = math.atan(na / ON)
+    # 5.3 Calculate the height of the trapezoid
+    gh = ON * math.tan(th2) - ON * math.tan(delta_rad)
+
+    # - Calculate width of bottom of FOV ----
+    ef = 2 * math.tan(beta_rad / 2) * (ON / math.cos(delta_rad))
+
+    # - Calculate width of top of FOV ----
+    jk = 2 * math.tan(beta_rad / 2) * (ON / math.cos(th2))
+
+    # - Calculate the area of the trapezoid ----
+    jkef = (jk + ef) / 2 * gh / 10000
+
+    return delta_rad, ON, bp, ba, na, th2, gh, ef, jk, jkef
 
 def draw_guides(img, pt_color=(0, 0, 255), guide_color=(0, 255, 0)):
     # Add intersecting lines to find the focal point
@@ -215,7 +251,7 @@ def draw_grid(img, color=(255, 255, 255), grid_interval=10):
     # Distances between reciprocal edges and p are equal (gp = ph; bp = pu)
     # Horizontal lines
     h_intervals = np.arange(grid_interval, 160, grid_interval, dtype=object).tolist()
-    hlines = np.array([calc_h_line(img, theta=22.2, alpha=47.4, camera_height=44.11, grid_interval=x)
+    hlines = np.array([calc_h_line(img, theta_deg=22.2, alpha_deg=47.4, camera_height=44.11, grid_interval=x)
                        for x in h_intervals])
     # Draw the lines
     cv2.polylines(img, hlines, isClosed=True, color=color, thickness=1, lineType=cv2.LINE_AA)
