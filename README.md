@@ -12,7 +12,7 @@ Given a set of camera and mounting specifications (e.g., camera height, vertical
 perspective grid can be calculated following [Wakefield & Genin (1987)](https://www.doi.org/10.1016/0198-0149(87)90148-8), 
 which allows for the FOV area to be mathematically determined. I implemented this method in Python to overlay a perspective 
 grid on a seabed image. An additional step to measure the FOV with acceptable illumination is currently being developed
-using thresholding
+using thresholding.
 
 ## To run:
 1. Clone the project
@@ -34,3 +34,12 @@ python3 main.py 'input_image.jpg' 'output_image_with_grid.png' -gr
     - `-gu` indicates whether the guide-lines should be shown on the image (e.g., diagonals denoting the focal point, etc.);
   defaults to `False`
     - `-gr` indicates whether the perspective grid lines should be shown on the image; defaults to `True`
+
+Returns the original image with the perspective grid overlaid and the calculated field of view area in m<sup>2</sup>.
+
+## Example output:
+
+![input image ](test_out.png)
+```shell
+FOV area = 0.893 m^2
+```
