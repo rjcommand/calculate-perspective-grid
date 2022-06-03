@@ -130,6 +130,7 @@ dmypy.json
 
 # Any generated images
 *.png
+!test_out.png
 
 # PyCharm project files
 *.xml
