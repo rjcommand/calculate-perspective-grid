@@ -11,8 +11,9 @@ the seafloor, which necessitates the consideration of perspective and illuminati
 Given a set of camera and mounting specifications (e.g., camera height, vertical and horizontal acceptance angles), a 
 perspective grid can be calculated following [Wakefield & Genin (1987)](https://www.doi.org/10.1016/0198-0149(87)90148-8), 
 which allows for the FOV area to be mathematically determined. I implemented this method in Python to overlay a perspective 
-grid on a seabed image. An additional step to measure the FOV with acceptable illumination is currently being developed
-using thresholding.
+grid on a seabed image, where each grid square represents a 10 cm x 10 cm real seafloor area. Currently, I am using a 
+distance of 80 cm to the top of the field of view, which represents the distance to the estimated area of acceptable illumination.
+An additional step to estimate the FOV with acceptable illumination is currently being developed using thresholding.
 
 ## To run:
 1. Clone the project
