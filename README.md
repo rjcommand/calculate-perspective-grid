@@ -38,6 +38,9 @@ python3 main.py 'input_image.jpg' 'output_image_with_grid.png' -gr
 Returns the original image with the perspective grid overlaid and the calculated field of view area in m<sup>2</sup>.
 
 ## Example output:
+Test image is a screenshot taken from the Holyrood Subsea Observatory operated by Ocean Networks Canada (ONC) and the Fisheries 
+and Marine Institute of Memorial University of Newfoundland and Labrador. Data available on ONC's [Oceans 3.0 online data
+portal](https://data.oceannetworks.ca/DataSearch).
 
 ![input image ](test_out.png)
 ```shell
