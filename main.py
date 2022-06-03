@@ -36,7 +36,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
     img = perspective_grid.load_image(args.image_path)  # Formerly 'test_image.jpg'
     cropped = perspective_grid.remove_borders(img)
-    cropped_with_curve = perspective_grid.draw_light_curve(cropped, th=args.threshold)
+    #cropped_with_curve = perspective_grid.draw_light_curve(cropped, th=args.threshold)
     img_with_grid = perspective_grid.overlay_grid(img=cropped, grid_interval=10, show_guides=args.guides, show_grid=args.grid)
     perspective_grid.save_image(args.output_image, img_with_grid)
     print('FOV area =', np.round(perspective_grid.calc_area()[9], 3), 'm^2')
